@@ -1,4 +1,5 @@
-# Pytorch-NeuroEvolution
+# Safe-NeuroEvolution: Can We learn Safe Policies from Evolution or Jumpstart Safe Agents
+
 * The Environment is adopted from [this implementation]( https://github.com/alirezamika/evostra), which uses evolution strategy.
 * In this project we implemented a Pytorch version of [DeepNeuroevolution](https://eng.uber.com/research/deep-neuroevolution-genetic-algorithms-are-a-competitive-alternative-for-training-deep-neural-networks-for-reinforcement-learning/)
 

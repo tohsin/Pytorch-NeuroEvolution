@@ -87,22 +87,27 @@ class NeuroEvolution:
             #     self.reward_function,
             #     [p[0] for p in n_pop]
             # )
-            rewards = self.pool.map(
+            rewards_costs = self.pool.map(
                 self.reward_function,
                 [p[0] for p in n_pop]
             )
             for i, _ in enumerate(n_pop):
-                n_pop[i][1] = rewards[i]
-            n_pop.sort(key=lambda p: p[1], reverse=True)
+                r, c= rewards_costs[i]
+                print(rewards_costs)
+                n_pop[i][1] = r
+                n_pop[i][2] = c
+
+            n_pop.sort(key=lambda p: p[1], reverse=True) # rank based on reward
             for i in range(self.candidate_num):
-                n_pop[i][2] = i
+                n_pop[i][3] = i
 
             if self.seeded_env >= 0:
-                if iteration==0:
+                if iteration == 0:
                     elite=n_pop[0]
                 else:
                     elite = max([n_pop[0], prev_elite], key=lambda p: p[1])
             else:
+                # cut away the agents that dont perform well and leave only cnadidate num
                 if iteration==0:
                     elite_c = n_pop[:self.candidate_num]
                 else:
@@ -110,12 +115,13 @@ class NeuroEvolution:
 
                 rewards_list = np.zeros((10,))
                 for _ in range(self.cand_test_times):
-                    rewards = self.pool.map(
+                    rewards_costs = self.pool.map(
                         self.reward_function,
                         [p[0] for p in elite_c]
                     )
 
-                    rewards_list += np.array(rewards)
+                    rewards_list += np.array(rewards_costs)
+
                 rewards_list/=self.cand_test_times
                 for i, _ in enumerate(elite_c):
                     elite_c[i][1] = rewards_list[i]
