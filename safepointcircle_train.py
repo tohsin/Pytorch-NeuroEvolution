@@ -45,12 +45,12 @@ class Agent(nn.Module):
 env = safety_gymnasium.make("SafetyPointCircle0-v0")
 obs_size = env.observation_space.shape[0]
 actions_space = 2
-agent = Agent(obs_size, [64, 64], output_size = actions_space)
+model = Agent(obs_size, [64, 64], output_size = actions_space)
 
-def get_reward(weights, agent, render=False):
+def get_reward(weights, model, render=False):
     with torch.no_grad():
-        cloned_agent = copy.deepcopy(agent)
-        for i, param in enumerate(cloned_agent.parameters()):
+        cloned_model = copy.deepcopy(model)
+        for i, param in enumerate(cloned_model.parameters()):
             try:
                 param.data.copy_(weights[i])
             except:
@@ -67,7 +67,7 @@ def get_reward(weights, agent, render=False):
             if cuda:
                 batch = batch.cuda()
 
-            prediction = cloned_agent(batch)
+            prediction = cloned_model(batch)
             action = prediction.cpu().clone().data[0]
             # ob, reward, done, _ = env.step(action)
             ob, reward, cost, terminated, truncated, _ = env.step(action)
@@ -78,10 +78,10 @@ def get_reward(weights, agent, render=False):
                 break
 
         env.close()
-    return total_reward, total_cost
+    return total_reward
     
-partial_func = partial(get_reward, model = agent)
-mother_parameters = list(agent.parameters())
+partial_func = partial(get_reward, model = model)
+mother_parameters = list(model.parameters())
 
 ne = NeuroEvolution(
     mother_parameters, partial_func, population_size=15,
