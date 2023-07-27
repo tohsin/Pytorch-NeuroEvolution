@@ -45,8 +45,10 @@ class Agent(nn.Module):
 env = safety_gymnasium.make("SafetyPointCircle0-v0")
 obs_size = env.observation_space.shape[0]
 actions_space = 2
-model = Agent(obs_size, [64, 64], output_size = actions_space)
-
+model = Agent(obs_size, [32, 32], output_size = actions_space)
+if cuda:
+    print("using Cuda")
+    model = model.to('cuda')
 def get_reward(weights, model, render=False):
     with torch.no_grad():
         cloned_model = copy.deepcopy(model)
@@ -56,7 +58,7 @@ def get_reward(weights, model, render=False):
             except:
                 param.data.copy_(weights[i].data)
 
-        observation, _ = env.reset()
+        ob, _ = env.reset()
         #obs, reward, cost, terminated, truncated, info = env.step(act)
         total_reward = 0
         total_cost = 0
