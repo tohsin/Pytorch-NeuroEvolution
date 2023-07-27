@@ -21,7 +21,7 @@ import torch.nn as nn
 parser = argparse.ArgumentParser()
 parser.add_argument('-w', '--weights_path', type=str, default="out.plt", help='Path to save final weights')
 parser.add_argument('-c', '--cuda', action='store_true', help='Whether or not to use CUDA')
-parser.set_defaults(cuda=False)
+parser.set_defaults(cuda=False) 
 
 args = parser.parse_args()
 
@@ -57,7 +57,7 @@ def get_reward(weights, model, render=False):
                 param.data.copy_(weights[i])
             except:
                 param.data.copy_(weights[i].data)
-
+        env = safety_gymnasium.make("SafetyPointCircle0-v0")
         ob, _ = env.reset()
         #obs, reward, cost, terminated, truncated, info = env.step(act)
         total_reward = 0
