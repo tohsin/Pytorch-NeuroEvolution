@@ -9,7 +9,8 @@ import random
 import numpy as np
 import torch
 from operator import add
-
+import sys
+import wandb
 class NeuroEvolution:
 
     def __init__(
@@ -66,7 +67,15 @@ class NeuroEvolution:
             child_list.append(child)
         return child_list
 
+    def _get_config(self, print_step):
+        return{
+            "print_step" : print_step,
+            "population_size" : self.population_size,
+            "sigma" : self.sigma
+         }
     def run(self, iterations, print_step=10):
+        if sys.platform == 'linux': #not debugging on mac but running experiment
+            run = wandb.init(project='Safe RL via NeuroEvolution', config = self._get_config(print_step) )
         for iteration in range(iterations):
             n_pop = []
             # create a new agent or mutate old agents
@@ -141,6 +150,10 @@ class NeuroEvolution:
                 elite[0], render=self.render_test
             )
             if (iteration+1) % print_step == 0:
+                scalers={'test_reward', test_reward}
+                if sys.platform == 'linux':
+                    wandb.log(scalers, step = iteration )
+
                 print('iter %d. reward: %f' % (iteration+1, test_reward))
                 if self.save_path:
                     pickle.dump(self.weights, open(self.save_path, 'wb'))

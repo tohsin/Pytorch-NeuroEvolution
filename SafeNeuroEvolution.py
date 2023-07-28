@@ -76,7 +76,7 @@ class NeuroEvolution:
                     for param in self.weights:
                         x.append(torch.from_numpy(np.random.randn(*param.data.size())).type(torch.FloatTensor).to(self.device))
                         # x.append((torch.from_numpy(np.random.randint(0, 2,param.data.size()))).to(self.device))
-                    n_pop.append([x, 0, i])
+                    n_pop.append([x, 0, 0, i]) # weights , reward, cost and rank
                 else:
                     # p_id = random.randint(0, self.POPULATION_SIZE-1)
                     p_id = i
@@ -92,8 +92,7 @@ class NeuroEvolution:
                 [p[0] for p in n_pop]
             )
             for i, _ in enumerate(n_pop):
-                r, c= rewards_costs[i]
-                print(rewards_costs)
+                r, c = rewards_costs[i]
                 n_pop[i][1] = r
                 n_pop[i][2] = c
 

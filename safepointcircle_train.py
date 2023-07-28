@@ -5,7 +5,7 @@ import logging
 import os
 import pickle
 import time
-
+import sys
 from NeuroEvolution import NeuroEvolution
 
 # from utils.helpers import weights_init
@@ -86,11 +86,13 @@ partial_func = partial(get_reward, model = model)
 mother_parameters = list(model.parameters())
 
 ne = NeuroEvolution(
-    mother_parameters, partial_func, population_size=15,
+    mother_parameters, partial_func, population_size=2,
     sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
     threadcount=50, cuda=cuda, render_test=False
 )
 start = time.time()
+
+
 final_weights = ne.run(4000, print_step = 1)
 end = time.time() - start
 
