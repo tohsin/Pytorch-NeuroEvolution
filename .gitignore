@@ -3,4 +3,4 @@ __pycache__
 __pycache__/NeuroEvolution.cpython-36.pyc
 __pycache__/NeuroEvolution.cpython-39.pyc
 
-/wandb/*
+wandb/
