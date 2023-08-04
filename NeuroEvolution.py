@@ -70,8 +70,8 @@ class NeuroEvolution:
     def _get_config(self, print_step):
         return{
             "print_step" : print_step,
-            "population_size" : self.population_size,
-            "sigma" : self.sigma
+            "population_size" : self.POPULATION_SIZE,
+            "sigma" : self.SIGMA
          }
     def run(self, iterations, print_step=10):
         if sys.platform == 'linux': #not debugging on mac but running experiment
@@ -150,7 +150,7 @@ class NeuroEvolution:
                 elite[0], render=self.render_test
             )
             if (iteration+1) % print_step == 0:
-                scalers={'test_reward', test_reward}
+                scalers={'test_reward': test_reward}
                 if sys.platform == 'linux':
                     wandb.log(scalers, step = iteration )
 
