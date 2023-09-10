@@ -92,23 +92,14 @@ class NeuroEvolution:
                     new_p = self.mutate(pop[p_id], self.SIGMA)
                     n_pop.append([copy.deepcopy(new_p), 0, i])
             
-            # rewards, costs = self.pool.map(
-            #     self.reward_function,
-            #     [p[0] for p in n_pop]
-            # )
             rewards = self.pool.map(
                 self.reward_function,
                 [p[0] for p in n_pop]
             )
-
-            # rewards = []
-            # for p in n_pop:
-            #     reward = self.reward_function(p[0])
-            #     rewards.append(reward)
             
             for i, _ in enumerate(n_pop):
                 n_pop[i][1] = rewards[i]
-            print("Ranking Agents")
+
             n_pop.sort(key=lambda p: p[1], reverse=True)
             for i in range(self.candidate_num):
                 n_pop[i][2] = i
