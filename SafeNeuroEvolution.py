@@ -83,7 +83,8 @@ class SafeNeuroEvolution:
         self.seeded_env=seeded_env
 
     # def reward_func_wrapper(self):
-
+    def compute_avg(self, agent):
+        agent.compute_avg(self.cand_test_times)
 
     def mutate(self, parent_list, sigma):
         child_list : list[SafeAgent]= []
@@ -142,7 +143,7 @@ class SafeNeuroEvolution:
                 else:
                     elite_c = n_pop[:self.candidate_num-1] + [prev_elite]
 
-                rewards_list = np.zeros((10,))
+
                 # for eval the elite population 
 
                 # reset avg score of each agent first
