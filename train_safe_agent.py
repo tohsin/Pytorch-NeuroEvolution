@@ -89,11 +89,21 @@ def get_performance(safe_agent : SafeAgent, model, render=False):
 partial_func = partial(get_performance, model = model)
 mother_parameters = list(model.parameters())
 
+# orginal
+
 ne = SafeNeuroEvolution(
     mother_parameters, partial_func, population_size = 20,
     sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
     threadcount=50, cuda=cuda, render_test=False
 )
+
+# Mac test code
+
+# ne = SafeNeuroEvolution(
+#     mother_parameters, partial_func, population_size = 2, candidate_num = 2,
+#     sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
+#     threadcount=50, cuda=cuda, render_test=False
+# )
 start = time.time()
 
 

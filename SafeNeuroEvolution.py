@@ -87,13 +87,15 @@ class SafeNeuroEvolution:
         agent.compute_avg(self.cand_test_times)
 
     def mutate(self, parent_list, sigma):
-        child_list : list[SafeAgent]= []
-        for parent in parent_list[0]:
-            child = SafeAgent()
-            child.weights = parent.weights + sigma *  torch.from_numpy(np.random.normal(0,0.2,parent.shape)).type(torch.FloatTensor).to(self.device)
+        '''
+        Creates a new child from single parent  weights
+        '''
+        child = SafeAgent()
+        # loop through weights
+        for weight in parent_list[0].weights:
+            child.weights.append(weight + sigma *  torch.from_numpy(np.random.normal(0, 0.2, weight.shape)).type(torch.FloatTensor).to(self.device))
             # child = (torch.from_numpy(np.random.randint(0,2,parent.shape))).type(torch.DoubleTensor).to(self.device)
-            child_list.append(child)
-        return child_list
+        return child
 
     def _get_config(self, print_step):
         return{
@@ -120,7 +122,7 @@ class SafeNeuroEvolution:
                     # p_id = random.randint(0, self.POPULATION_SIZE-1)
                     p_id = i
                     new_p = self.mutate(pop[p_id], self.SIGMA)
-                    n_pop.append([copy.deepcopy(new_p), i])
+                    n_pop.append([copy.deepcopy(new_p), i]) # copy the object just incase python has attachment to the adress
             
           
             self.pool.map(
