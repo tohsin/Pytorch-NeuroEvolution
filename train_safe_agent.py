@@ -42,7 +42,7 @@ class Agent(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-env = safety_gymnasium.make("SafetyPointCircle0-v0")
+env = safety_gymnasium.make("SafetyPointCircle1-v0")
 obs_size = env.observation_space.shape[0]
 actions_space = 2
 model = Agent(obs_size, [32, 32], output_size = actions_space)
@@ -60,7 +60,7 @@ def get_performance(safe_agent : SafeAgent, model, render=False):
                 param.data.copy_(weights[i])
             except:
                 param.data.copy_(weights[i].data)
-        env = safety_gymnasium.make("SafetyPointCircle0-v0", render_mode="human")
+        env = safety_gymnasium.make("SafetyPointCircle1-v0", render_mode="rgb_array")
         ob, _ = env.reset()
         #obs, reward, cost, terminated, truncated, info = env.step(act)
         total_reward = 0
@@ -90,7 +90,7 @@ partial_func = partial(get_performance, model = model)
 mother_parameters = list(model.parameters())
 
 ne = SafeNeuroEvolution(
-    mother_parameters, partial_func, population_size = 50,
+    mother_parameters, partial_func, population_size = 20,
     sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
     threadcount=50, cuda=cuda, render_test=False
 )
