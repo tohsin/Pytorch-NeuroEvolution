@@ -134,7 +134,7 @@ class SafeNeuroEvolution:
 
             '''
             
-            n_pop.sort(key=lambda p: p[1].reward, reverse=True)
+            n_pop.sort(key=lambda p: p[0].reward, reverse=True)
 
             for i in range(self.candidate_num):
                 n_pop[i][1] = i

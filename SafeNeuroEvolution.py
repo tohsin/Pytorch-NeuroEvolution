@@ -127,7 +127,7 @@ class SafeNeuroEvolution:
                 self.performance_func,  [p[0] for p in n_pop] #p[0] is the agent
             )
             
-            n_pop.sort(key=lambda p: p[1].reward, reverse=True)
+            n_pop.sort(key=lambda p: p[0].reward, reverse=True)
 
             for i in range(self.candidate_num):
                 n_pop[i][1] = i
