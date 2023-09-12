@@ -140,7 +140,7 @@ class SafeNeuroEvolution:
                 else:
                     elite = max([n_pop[0], prev_elite], key=lambda p: p[1])
             else:
-                if iteration==0:
+                if iteration == 0:
                     elite_c = n_pop[:self.candidate_num]
                 else:
                     elite_c = n_pop[:self.candidate_num-1] + [prev_elite]

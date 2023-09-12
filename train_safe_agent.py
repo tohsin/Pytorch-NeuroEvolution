@@ -102,7 +102,7 @@ ne = SafeNeuroEvolution(
 # ne = SafeNeuroEvolution(
 #     mother_parameters, partial_func, population_size = 2, candidate_num = 2,
 #     sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
-#     threadcount=50, cuda=cuda, render_test=False
+#     threadcount=5, cuda=cuda, render_test=False
 # )
 start = time.time()
 
@@ -112,7 +112,7 @@ end = time.time() - start
 
 pickle.dump(final_agent.weights, open(os.path.abspath(args.weights_path), 'wb'))
 
-partial_func(final_agent, render=True)
+partial_func(final_agent, render=False)
 
 print(f"Reward from final weights: {final_agent.reward}")
 print(f"Cost from final weights: {final_agent.cost}")
