@@ -41,8 +41,8 @@ class Agent(nn.Module):
         
     def forward(self, x):
         return self.model(x)
-
-env = safety_gymnasium.make("SafetyPointCircle0-v0")
+task_name  =  "SafetyPointCircle0-v0"
+env = safety_gymnasium.make(task_name)
 obs_size = env.observation_space.shape[0]
 actions_space = 2
 model = Agent(obs_size, [32, 32], output_size = actions_space)
@@ -57,7 +57,7 @@ def get_reward(weights, model, render=False):
                 param.data.copy_(weights[i])
             except:
                 param.data.copy_(weights[i].data)
-        env = safety_gymnasium.make("SafetyPointCircle0-v0")
+        env = safety_gymnasium.make(task_name)
         ob, _ = env.reset()
         #obs, reward, cost, terminated, truncated, info = env.step(act)
         total_reward = 0
@@ -85,11 +85,11 @@ def get_reward(weights, model, render=False):
 partial_func = partial(get_reward, model = model)
 mother_parameters = list(model.parameters())
 
-# ne = NeuroEvolution(
-#     mother_parameters, partial_func, population_size=50,
-#     sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
-#     threadcount=50, cuda=cuda, render_test=False
-# )
+ne = NeuroEvolution(
+    mother_parameters, partial_func, population_size=50,
+    sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
+    threadcount=50, cuda=cuda, render_test=False
+)
 
 ne = NeuroEvolution(
     mother_parameters, partial_func, population_size=10,

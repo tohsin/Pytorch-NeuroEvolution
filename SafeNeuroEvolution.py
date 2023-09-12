@@ -57,7 +57,8 @@ class SafeNeuroEvolution:
         candidate_num = 10,
         cand_test_time = 10,
         method = 2,
-        seeded_env=-1
+        seeded_env=-1,
+        task = ""
     ):
         np.random.seed(int(time.time()))
         self.cand_test_times = cand_test_time
@@ -81,6 +82,7 @@ class SafeNeuroEvolution:
         self.save_path = save_path
         self.method = method
         self.seeded_env=seeded_env
+        self.task = task
 
     # def reward_func_wrapper(self):
     def compute_avg(self, agent):
@@ -101,7 +103,11 @@ class SafeNeuroEvolution:
         return{
             "print_step" : print_step,
             "population_size" : self.POPULATION_SIZE,
-            "sigma" : self.SIGMA
+            "sigma" : self.SIGMA,
+            "task" : self.task,
+            "candidate_num" : self.candidate_num,
+            "method" : self.method,
+            "use_cuda" : torch.cuda.is_available()
          }
     
     def run(self, iterations, print_step=10):
@@ -187,12 +193,18 @@ class SafeNeuroEvolution:
                 elite[0], render=self.render_test
             )
             test_reward = elite[0].reward
+            test_cost = elite[0].cost
+
             if (iteration+1) % print_step == 0:
-                scalers={'test_reward': test_reward}
+                scalers = {
+                    'test_reward': test_reward,
+                    "test_cost" : test_cost
+                }
                 if sys.platform == 'linux':
                     wandb.log(scalers, step = iteration )
 
                 print('iter %d. reward: %f' % (iteration+1, test_reward))
+                print('iter %d. cost: %f' % (iteration+1, test_cost))
                 if self.save_path:
                     pickle.dump(self.weights, open(self.save_path, 'wb'))
                 
