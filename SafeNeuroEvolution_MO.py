@@ -57,8 +57,9 @@ class SafeNeuroEvolution:
         candidate_num = 10,
         cand_test_time = 10,
         method = 2,
-        seeded_env=-1
-        safety_budget = 30
+        seeded_env=-1,
+        task = "",
+        select_random_parent = False
     ):
         np.random.seed(int(time.time()))
         self.cand_test_times = cand_test_time
@@ -82,25 +83,34 @@ class SafeNeuroEvolution:
         self.save_path = save_path
         self.method = method
         self.seeded_env=seeded_env
+        self.task = task
+        self.select_random_parent = select_random_parent
 
     # def reward_func_wrapper(self):
     def compute_avg(self, agent):
         agent.compute_avg(self.cand_test_times)
 
     def mutate(self, parent_list, sigma):
-        child_list : list[SafeAgent]= []
-        for parent in parent_list[0]:
-            child = SafeAgent()
-            child.weights = parent.weights + sigma *  torch.from_numpy(np.random.normal(0,0.2,parent.shape)).type(torch.FloatTensor).to(self.device)
+        '''
+        Creates a new child from single parent  weights
+        '''
+        child = SafeAgent()
+        # loop through weights
+        for weight in parent_list[0].weights:
+            child.weights.append(weight + sigma *  torch.from_numpy(np.random.normal(0, 0.2, weight.shape)).type(torch.FloatTensor).to(self.device))
             # child = (torch.from_numpy(np.random.randint(0,2,parent.shape))).type(torch.DoubleTensor).to(self.device)
-            child_list.append(child)
-        return child_list
+        return child
 
     def _get_config(self, print_step):
         return{
             "print_step" : print_step,
             "population_size" : self.POPULATION_SIZE,
-            "sigma" : self.SIGMA
+            "sigma" : self.SIGMA,
+            "task" : self.task,
+            "candidate_num" : self.candidate_num,
+            "method" : self.method,
+            "use_cuda" : torch.cuda.is_available(),
+            "Population_select_random_parent": self.select_random_parent
          }
     
     def run(self, iterations, print_step=10):
@@ -109,6 +119,8 @@ class SafeNeuroEvolution:
 
         for iteration in range(iterations):
             n_pop = []
+            if iteration != 0:
+                print("Prev Population size", len(pop) )
             # create a new agent or mutate old agents
             for i in range(self.POPULATION_SIZE):
                 if iteration == 0:
@@ -118,22 +130,30 @@ class SafeNeuroEvolution:
                     # n_pop.append([x, 0, i]) # weights, score,  index 
                     n_pop.append([safe_agent, i]) # here we store the agent object alone as it will hold informationa about the reward and cost
                 else:
-                    # p_id = random.randint(0, self.POPULATION_SIZE-1)
-                    p_id = i
+                    if self.select_random_parent:
+                        p_id = random.randint(0, len(pop) - 1)
+                    else:
+                        p_id = i
                     new_p = self.mutate(pop[p_id], self.SIGMA)
-                    n_pop.append([copy.deepcopy(new_p), i])
+                    n_pop.append([copy.deepcopy(new_p), i]) # copy the object just incase python has attachment to the adress
             
           
             self.pool.map(
                 self.performance_func,  [p[0] for p in n_pop] #p[0] is the agent
             )
             '''
-            Sort first by Cost 
-            1. We find agents that don't violate constrains below the treshold Cost - Budget
-                if we find agents that dont violate at all then we delete every other agent leaving only agents that
+            We frist sort by cost to find how many agents meet the safety budget.
+            1. If n agents all meet the safety budget criteria we use these as the
+                candidates.
 
+                n safety candidates undergo multiple interactions
+                to get better estimates of their cost ( avg_cost )
+
+                we get new agents we call - m agents
+                we reselect candidates based on if they meet sfaety criteria.
+
+                we select elite as the agent with the highest avg reward
             '''
-            
             n_pop.sort(key=lambda p: p[0].reward, reverse=True)
 
             for i in range(self.candidate_num):
@@ -145,7 +165,7 @@ class SafeNeuroEvolution:
                 else:
                     elite = max([n_pop[0], prev_elite], key=lambda p: p[1])
             else:
-                if iteration==0:
+                if iteration == 0:
                     elite_c = n_pop[:self.candidate_num]
                 else:
                     elite_c = n_pop[:self.candidate_num-1] + [prev_elite]
@@ -168,7 +188,6 @@ class SafeNeuroEvolution:
                     # now we add that reward to their avg property
                     # try to use pool to optimise later
                     for agent_ in elite_c:
-                        #agent : SafeAgent = agent_[0]
                         agent_[0].add_to_avg()
 
                 # now finally we compute avg
@@ -181,6 +200,7 @@ class SafeNeuroEvolution:
             if self.method==1:
                 n_pop[elite[2]] = elite
             else:
+                # method 2 simply adds the last elite back to the population
                 if iteration != 0:
                     n_pop[-1] = prev_elite
             pop = n_pop
@@ -189,15 +209,21 @@ class SafeNeuroEvolution:
 
 
             self.performance_func(
-                elite[0], render=self.render_test
+                elite[0], render = self.render_test
             )
             test_reward = elite[0].reward
+            test_cost = elite[0].cost
+
             if (iteration+1) % print_step == 0:
-                scalers={'test_reward': test_reward}
+                scalers = {
+                    'test_reward': test_reward,
+                    "test_cost" : test_cost
+                }
                 if sys.platform == 'linux':
                     wandb.log(scalers, step = iteration )
 
                 print('iter %d. reward: %f' % (iteration+1, test_reward))
+                print('iter %d. cost: %f' % (iteration+1, test_cost))
                 if self.save_path:
                     pickle.dump(self.weights, open(self.save_path, 'wb'))
                 

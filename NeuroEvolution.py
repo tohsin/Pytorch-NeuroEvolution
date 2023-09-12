@@ -101,6 +101,7 @@ class NeuroEvolution:
                 n_pop[i][1] = rewards[i]
 
             n_pop.sort(key=lambda p: p[1], reverse=True)
+
             for i in range(self.candidate_num):
                 n_pop[i][2] = i
 

@@ -58,7 +58,8 @@ class SafeNeuroEvolution:
         cand_test_time = 10,
         method = 2,
         seeded_env=-1,
-        task = ""
+        task = "",
+        select_random_parent = False
     ):
         np.random.seed(int(time.time()))
         self.cand_test_times = cand_test_time
@@ -83,6 +84,7 @@ class SafeNeuroEvolution:
         self.method = method
         self.seeded_env=seeded_env
         self.task = task
+        self.select_random_parent = select_random_parent
 
     # def reward_func_wrapper(self):
     def compute_avg(self, agent):
@@ -107,7 +109,8 @@ class SafeNeuroEvolution:
             "task" : self.task,
             "candidate_num" : self.candidate_num,
             "method" : self.method,
-            "use_cuda" : torch.cuda.is_available()
+            "use_cuda" : torch.cuda.is_available(),
+            "Population_select_random_parent": self.select_random_parent
          }
     
     def run(self, iterations, print_step=10):
@@ -116,6 +119,8 @@ class SafeNeuroEvolution:
 
         for iteration in range(iterations):
             n_pop = []
+            if iteration != 0:
+                print("Prev Population size", len(pop) )
             # create a new agent or mutate old agents
             for i in range(self.POPULATION_SIZE):
                 if iteration == 0:
@@ -125,8 +130,10 @@ class SafeNeuroEvolution:
                     # n_pop.append([x, 0, i]) # weights, score,  index 
                     n_pop.append([safe_agent, i]) # here we store the agent object alone as it will hold informationa about the reward and cost
                 else:
-                    # p_id = random.randint(0, self.POPULATION_SIZE-1)
-                    p_id = i
+                    if self.select_random_parent:
+                        p_id = random.randint(0, len(pop) - 1)
+                    else:
+                        p_id = i
                     new_p = self.mutate(pop[p_id], self.SIGMA)
                     n_pop.append([copy.deepcopy(new_p), i]) # copy the object just incase python has attachment to the adress
             
@@ -169,7 +176,6 @@ class SafeNeuroEvolution:
                     # now we add that reward to their avg property
                     # try to use pool to optimise later
                     for agent_ in elite_c:
-                        #agent : SafeAgent = agent_[0]
                         agent_[0].add_to_avg()
 
                 # now finally we compute avg
@@ -182,6 +188,7 @@ class SafeNeuroEvolution:
             if self.method==1:
                 n_pop[elite[2]] = elite
             else:
+                # method 2 simply adds the last elite back to the population
                 if iteration != 0:
                     n_pop[-1] = prev_elite
             pop = n_pop
@@ -190,7 +197,7 @@ class SafeNeuroEvolution:
 
 
             self.performance_func(
-                elite[0], render=self.render_test
+                elite[0], render = self.render_test
             )
             test_reward = elite[0].reward
             test_cost = elite[0].cost
