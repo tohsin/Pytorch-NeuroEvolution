@@ -92,19 +92,19 @@ mother_parameters = list(model.parameters())
 
 # orginal
 
-ne = SafeNeuroEvolution(
-    mother_parameters, partial_func, population_size = 50,
-    sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
-    threadcount=50, cuda=cuda, render_test=False, task = task_name , select_random_parent = False
-)
+# ne = SafeNeuroEvolution(
+#     mother_parameters, partial_func, population_size = 50,
+#     sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
+#     threadcount=50, cuda=cuda, render_test=False, task = task_name , select_random_parent = False
+# )
 
 # Mac test code
 
-# ne = SafeNeuroEvolution(
-#     mother_parameters, partial_func, population_size = 2, candidate_num = 2,
-#     sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
-#     threadcount = 5, cuda=cuda, render_test=False, , task = task_name ,  select_random_parent = False
-# )
+ne = SafeNeuroEvolution(
+    mother_parameters, partial_func, population_size = 2, candidate_num = 2,
+    sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
+    threadcount = 1, cuda=cuda, render_test=False, task = task_name ,  select_random_parent = False
+)
 start = time.time()
 
 

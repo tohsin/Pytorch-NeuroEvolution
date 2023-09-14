@@ -52,6 +52,9 @@ if cuda:
     print("using Cuda")
     model = model.to('cuda')
 def get_reward(weights, model, render=False):
+    '''
+    returns reward, cost and weighted score, reward - lamda * cost
+    '''
     with torch.no_grad():
         cloned_model = copy.deepcopy(model)
         for i, param in enumerate(cloned_model.parameters()):
@@ -82,7 +85,8 @@ def get_reward(weights, model, render=False):
                 break
 
         env.close()
-    return total_reward
+    fitness =   total_reward - 2 * np.log(total_cost - 25 )
+    return total_reward, total_cost, fitness
     
 partial_func = partial(get_reward, model = model)
 mother_parameters = list(model.parameters())
@@ -90,7 +94,7 @@ mother_parameters = list(model.parameters())
 ne = NeuroEvolution(
     mother_parameters, partial_func, population_size=50,
     sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
-    threadcount=50, cuda=cuda, render_test=False, task = task_name, select_random_parent = True
+    threadcount=50, cuda=cuda, render_test=False
 )
 
 # ne = NeuroEvolution(

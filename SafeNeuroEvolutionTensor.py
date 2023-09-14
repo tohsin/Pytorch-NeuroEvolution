@@ -34,8 +34,7 @@ class NeuroEvolution:
         candidate_num = 10,
         cand_test_time = 10,
         method = 2,
-        seeded_env=-1,
-        select_random_parent = False
+        seeded_env=-1
     ):
         np.random.seed(int(time.time()))
         self.cand_test_times = cand_test_time
@@ -59,7 +58,6 @@ class NeuroEvolution:
         self.save_path = save_path
         self.method = method
         self.seeded_env=seeded_env
-        self.select_random_parent = select_random_parent
 
     # def reward_func_wrapper(self):
 
@@ -76,12 +74,7 @@ class NeuroEvolution:
         return{
             "print_step" : print_step,
             "population_size" : self.POPULATION_SIZE,
-            "sigma" : self.SIGMA,
-            "task" : self.task,
-            "candidate_num" : self.candidate_num,
-            "method" : self.method,
-            "use_cuda" : torch.cuda.is_available(),
-            "Population_select_random_parent": self.select_random_parent
+            "sigma" : self.SIGMA
          }
     def run(self, iterations, print_step=10):
         if sys.platform == 'linux': #not debugging on mac but running experiment
@@ -95,21 +88,22 @@ class NeuroEvolution:
                     for param in self.weights:
                         x.append(torch.from_numpy(np.random.randn(*param.data.size())).type(torch.FloatTensor).to(self.device))
                         # x.append((torch.from_numpy(np.random.randint(0, 2,param.data.size()))).to(self.device))
-                    n_pop.append([x, 0, i])
+                    n_pop.append([x, 0, i, 0, 0]) # 2 extra zeroes here are cost and a new fitness score
                 else:
-                    p_id = random.randint(0, self.POPULATION_SIZE-1) if self.select_random_parent else i
                     # p_id = random.randint(0, self.POPULATION_SIZE-1)
-                    # p_id = i
+                    p_id = i
                     new_p = self.mutate(pop[p_id], self.SIGMA)
-                    n_pop.append([copy.deepcopy(new_p), 0, i])
+                    n_pop.append([copy.deepcopy(new_p), 0, i, 0, 0])  #2 extra zeroes here are cost and a new fitness score
             
-            rewards = self.pool.map(
+            rewards = self.pool.map( # rewards unwraps into reward, cost and fitness score
                 self.reward_function,
                 [p[0] for p in n_pop]
             )
             
             for i, _ in enumerate(n_pop):
-                n_pop[i][1] = rewards[i]
+                n_pop[i][1] = rewards[i][0] # first u
+                n_pop[i][3] = rewards[i][1]  # Assign cost
+                n_pop[i][4] = rewards[i][2]  # Assign fitness score
 
             n_pop.sort(key=lambda p: p[1], reverse=True)
 
