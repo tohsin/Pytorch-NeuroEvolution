@@ -34,7 +34,8 @@ class NeuroEvolution:
         candidate_num = 10,
         cand_test_time = 10,
         method = 2,
-        seeded_env=-1
+        seeded_env=-1,
+        select_random_parent = False
     ):
         np.random.seed(int(time.time()))
         self.cand_test_times = cand_test_time
@@ -58,6 +59,7 @@ class NeuroEvolution:
         self.save_path = save_path
         self.method = method
         self.seeded_env=seeded_env
+        self.select_random_parent = select_random_parent
 
     # def reward_func_wrapper(self):
 
@@ -74,7 +76,12 @@ class NeuroEvolution:
         return{
             "print_step" : print_step,
             "population_size" : self.POPULATION_SIZE,
-            "sigma" : self.SIGMA
+            "sigma" : self.SIGMA,
+            "task" : self.task,
+            "candidate_num" : self.candidate_num,
+            "method" : self.method,
+            "use_cuda" : torch.cuda.is_available(),
+            "Population_select_random_parent": self.select_random_parent
          }
     def run(self, iterations, print_step=10):
         if sys.platform == 'linux': #not debugging on mac but running experiment
@@ -91,7 +98,7 @@ class NeuroEvolution:
                     n_pop.append([x, 0, i, 0, 0]) # 2 extra zeroes here are cost and a new fitness score
                 else:
                     # p_id = random.randint(0, self.POPULATION_SIZE-1)
-                    p_id = i
+                    p_id = random.randint(0, self.POPULATION_SIZE-1) if self.select_random_parent else i
                     new_p = self.mutate(pop[p_id], self.SIGMA)
                     n_pop.append([copy.deepcopy(new_p), 0, i, 0, 0])  #2 extra zeroes here are cost and a new fitness score
             
@@ -122,16 +129,30 @@ class NeuroEvolution:
                     elite_c = n_pop[:self.candidate_num-1] + [prev_elite]
 
                 rewards_list = np.zeros((10,))
+                cost_list = np.zeros((10,))
+                fitness_list = np.zeros((10,))
+
                 for _ in range(self.cand_test_times):
-                    rewards = self.pool.map(
+                    results = self.pool.map(
                         self.reward_function,
                         [p[0] for p in elite_c]
                     )
 
+                    rewards, costs, fitness_scores = zip(*results)
+
                     rewards_list += np.array(rewards)
+                    cost_list += np.array(costs)
+                    fitness_list += np.array(fitness_scores)
+
+
                 rewards_list/=self.cand_test_times
+                cost_list /= self.cand_test_times
+                fitness_list /= self.cand_test_times
+
                 for i, _ in enumerate(elite_c):
                     elite_c[i][1] = rewards_list[i]
+                    elite_c[i][3] = cost_list[i]  # Update cost
+                    elite_c[i][4] = fitness_list[i]  # Update fitness score
                 elite = max(elite_c, key=lambda p: p[1])
             if self.method==1:
                 n_pop[elite[2]] = elite
@@ -143,11 +164,15 @@ class NeuroEvolution:
             prev_elite[2] = -1
 
 
-            test_reward = self.reward_function(
+            test_results = self.reward_function(
                 elite[0], render=self.render_test
             )
+            test_reward = test_results[0]
+            test_cost = test_results[1]
+            test_fitness = test_results[1]
+
             if (iteration+1) % print_step == 0:
-                scalers={'test_reward': test_reward}
+                scalers = {'test_reward': test_reward, 'test_cost': test_cost, 'test_fitness_score': test_fitness}
                 if sys.platform == 'linux':
                     wandb.log(scalers, step = iteration )
 
