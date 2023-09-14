@@ -59,13 +59,16 @@ class SafeNeuroEvolution:
         method = 2,
         seeded_env=-1,
         task = "",
-        select_random_parent = False
+        select_random_parent = False,
+        safety_budget = 30
+        safe_candidate_num = 
     ):
         np.random.seed(int(time.time()))
         self.cand_test_times = cand_test_time
         self.weights = weights
         self.performance_func = performance_func
         self.candidate_num = max(1, candidate_num)
+        self.safe_candidate_num = max (1, safe_candidate_num )
         self.POPULATION_SIZE = max(population_size, self.candidate_num)
         self.SIGMA = sigma
         self.LEARNING_RATE = learning_rate
@@ -85,6 +88,7 @@ class SafeNeuroEvolution:
         self.seeded_env=seeded_env
         self.task = task
         self.select_random_parent = select_random_parent
+        self.safety_budget = safety_budget
 
     # def reward_func_wrapper(self):
     def compute_avg(self, agent):
@@ -154,8 +158,21 @@ class SafeNeuroEvolution:
 
                 we select elite as the agent with the highest avg reward
             '''
-            n_pop.sort(key=lambda p: p[0].reward, reverse=True)
-
+            # cost will be sorted in ascending order
+            n_pop.sort(key=lambda p: p[0].cost)
+            # count many agents meet the cost criteria
+            number_safe_agents = 0
+            for a in n_pop:
+                if a[0].cost - self.safety_budget <= 0:
+                    number_safe_agents += 1
+                else:
+                    break
+            
+            # n_pop.sort(key=lambda p: p[0].reward, reverse=True)
+            if number_safe_agents > self.min_safe_agents:
+                # in this condition we have more than enough agents and so we just use all as agents as first set of candidates
+                
+                candidates_safe_agents = n_pop[:number_safe_agents]
             for i in range(self.candidate_num):
                 n_pop[i][1] = i
 
