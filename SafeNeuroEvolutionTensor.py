@@ -35,6 +35,7 @@ class NeuroEvolution:
         cand_test_time = 10,
         method = 2,
         seeded_env=-1,
+        task = '',
         select_random_parent = False
     ):
         np.random.seed(int(time.time()))
@@ -59,6 +60,7 @@ class NeuroEvolution:
         self.save_path = save_path
         self.method = method
         self.seeded_env=seeded_env
+        self.task = task
         self.select_random_parent = select_random_parent
 
     # def reward_func_wrapper(self):

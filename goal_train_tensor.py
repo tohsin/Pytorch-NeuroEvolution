@@ -6,7 +6,7 @@ import os
 import pickle
 import time
 import sys
-from NeuroEvolution import NeuroEvolution
+from SafeNeuroEvolutionTensor import NeuroEvolution
 
 # from utils.helpers import weights_init
 import safety_gymnasium
@@ -85,7 +85,7 @@ def get_reward(weights, model, render=False):
                 break
 
         env.close()
-    fitness =   total_reward - 2 * np.log(total_cost - 25 )
+    fitness =   total_reward - 2 * np.log( max(0, total_cost - 25 ) )
     return total_reward, total_cost, fitness
     
 partial_func = partial(get_reward, model = model)
