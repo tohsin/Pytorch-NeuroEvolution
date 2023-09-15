@@ -42,7 +42,7 @@ class Agent(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-task_name  =  "SafetyPointGoal0-v0"
+task_name  =  "SafetyPointGoal1-v0"
 env = safety_gymnasium.make(task_name)
 obs_size = env.observation_space.shape[0]
 actions_space = 2
