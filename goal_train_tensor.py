@@ -86,7 +86,7 @@ def get_reward(weights, model, render=False):
                 break
 
         env.close()
-    fitness =   total_reward - 2 * np.log( max(0, total_cost - 25 ) )
+    fitness =   total_reward - 2 * np.log( max(1e-6, total_cost - 25 ) )
     return total_reward, total_cost, fitness
     
 partial_func = partial(get_reward, model = model)
@@ -95,7 +95,7 @@ mother_parameters = list(model.parameters())
 ne = NeuroEvolution(
     mother_parameters, partial_func, population_size=50,
     sigma=0.1, learning_rate=0.001, reward_goal=25, consecutive_goal_stopping=20,
-    threadcount=50, cuda=cuda, render_test=False, task = task_name, select_random_parent = False
+    threadcount=20, cuda=cuda, render_test=False, task = task_name, select_random_parent = False
 )
 
 # ne = NeuroEvolution(

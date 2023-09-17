@@ -68,16 +68,6 @@ class NeuroEvolution:
 
     # def reward_func_wrapper(self):
 
-        #make my code more readable
-        self.map_metrics = {
-            'weights' : 0,
-            'reward' : 1,
-            'idx' : 2,
-            'cost': 3,
-            'fitness' : 4
-        }
-
-
     def mutate(self, parent_list, sigma):
         child_list = []
         for parent in parent_list[0]:
@@ -98,8 +88,14 @@ class NeuroEvolution:
             "Population_select_random_parent": self.select_random_parent
          }
     def run(self, iterations, print_step=10):
+        weight_idx = 0
+        reward_idx = 1
+        pos_idx = 2
+        cost_idx = 3
+        fitness_idx = 4
         if sys.platform == 'linux': #not debugging on mac but running experiment
             run = wandb.init(project='Safe RL via NeuroEvolution', config = self._get_config(print_step) )
+
         for iteration in range(iterations):
             n_pop = []
             # create a new agent or mutate old agents
@@ -118,25 +114,25 @@ class NeuroEvolution:
             
             rewards = self.pool.map( # rewards unwraps into reward, cost and fitness score
                 self.reward_function,
-                [p[0] for p in n_pop]
+                [p[weight_idx] for p in n_pop]
             )
             
             for i, _ in enumerate(n_pop):
-                n_pop[i][1] = rewards[i][0] # first u
-                n_pop[i][3] = rewards[i][1]  # Assign cost
-                n_pop[i][4] = rewards[i][2]  # Assign fitness score
+                n_pop[i][reward_idx] = rewards[i][0] # first u
+                n_pop[i][cost_idx] = rewards[i][1]  # Assign cost
+                n_pop[i][fitness_idx] = rewards[i][2]  # Assign fitness score
 
             # new code starts here
             '''
             1. first sort by cost to find candidates
             2. find number of candidates that fall below treshold
             '''
-            n_pop.sort(key=lambda p: p[self.map_metrics['cost']], reverse=False)
+            n_pop.sort(key=lambda p: p[cost_idx], reverse=False)
 
             number_safe_candidates = 0
 
             for i in range(self.candidate_num):
-                if n_pop[i][self.map_metrics['cost']] - self.budget  <= 0:
+                if n_pop[i][cost_idx] - self.budget  <= 0:
                     number_safe_candidates += 1
                 else:
                     break
@@ -159,12 +155,15 @@ class NeuroEvolution:
                 else:
                     #in this case we have more than enough safe agents we reselect our candidates from the safe candidates
                     if number_safe_candidates >= self.candidate_num:
+                        
                         elite_safe = n_pop[:self.number_safe_candidates]
-                        elite_safe.sort(key=lambda p: p[self.map_metrics['reward']], reverse=True)
+                        elite_safe.sort(key=lambda p: p[reward_idx], reverse=True)
+
                         elite_c = elite_safe[:self.candidate_num-1] + [prev_elite]
                     # in this case we have some safe agents that are more than 3 but not alot we simply use all for candidate agents
                     # and not exlude the last agent as we dont have enough
                     elif number_safe_candidates < self.candidate_num and number_safe_candidates > 3:
+
                         elite_c = n_pop[:self.number_safe_candidates] + [prev_elite]
                     # in this case we dont have any safe agents and we simply selcet the lowest agents
                     else:
@@ -178,7 +177,7 @@ class NeuroEvolution:
                 for _ in range(self.cand_test_times):
                     results = self.pool.map(
                         self.reward_function,
-                        [p[0] for p in elite_c]
+                        [p[weight_idx] for p in elite_c]
                     )
 
                     rewards, costs, fitness_scores = zip(*results)
@@ -193,9 +192,9 @@ class NeuroEvolution:
                 fitness_list /= self.cand_test_times
 
                 for i, _ in enumerate(elite_c):
-                    elite_c[i][1] = rewards_list[i]
-                    elite_c[i][3] = cost_list[i]  # Update cost
-                    elite_c[i][4] = fitness_list[i]  # Update fitness score
+                    elite_c[i][reward_idx] = rewards_list[i]
+                    elite_c[i][cost_idx] = cost_list[i]  # Update cost
+                    elite_c[i][fitness_idx] = fitness_list[i]  # Update fitness score
 
                 elite = max(elite_c, key=lambda p: p[1])
             if self.method==1:
