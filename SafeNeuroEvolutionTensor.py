@@ -65,6 +65,15 @@ class NeuroEvolution:
 
     # def reward_func_wrapper(self):
 
+        #make my code more readable
+        self.map_metrics = {
+            'weights' : 0,
+            'reward' : 1,
+            'idx' : 2,
+            'cost': 3,
+            'fitness' : 4
+        }
+
 
     def mutate(self, parent_list, sigma):
         child_list = []
@@ -155,6 +164,7 @@ class NeuroEvolution:
                     elite_c[i][1] = rewards_list[i]
                     elite_c[i][3] = cost_list[i]  # Update cost
                     elite_c[i][4] = fitness_list[i]  # Update fitness score
+
                 elite = max(elite_c, key=lambda p: p[1])
             if self.method==1:
                 n_pop[elite[2]] = elite
@@ -171,7 +181,7 @@ class NeuroEvolution:
             )
             test_reward = test_results[0]
             test_cost = test_results[1]
-            test_fitness = test_results[1]
+            test_fitness = test_results[2]
 
             if (iteration+1) % print_step == 0:
                 scalers = {'test_reward': test_reward, 'test_cost': test_cost, 'test_fitness_score': test_fitness}

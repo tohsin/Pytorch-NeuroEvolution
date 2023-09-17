@@ -14,7 +14,6 @@ import wandb
 
 
 
-
 class NeuroEvolution:
 
     def __init__(
@@ -37,8 +36,7 @@ class NeuroEvolution:
         method = 2,
         seeded_env=-1,
         task = '',
-        select_random_parent = False,
-        safety_budget = 25
+        select_random_parent = False
     ):
         np.random.seed(int(time.time()))
         self.cand_test_times = cand_test_time
@@ -64,7 +62,6 @@ class NeuroEvolution:
         self.seeded_env=seeded_env
         self.task = task
         self.select_random_parent = select_random_parent
-        self.budget = safety_budget
 
     # def reward_func_wrapper(self):
 
@@ -126,27 +123,10 @@ class NeuroEvolution:
                 n_pop[i][3] = rewards[i][1]  # Assign cost
                 n_pop[i][4] = rewards[i][2]  # Assign fitness score
 
-            # new code starts here
-            '''
-            1. first sort by cost to find candidates
-            2. find number of candidates that fall below treshold
-            '''
-            n_pop.sort(key=lambda p: p[self.map_metrics['cost']], reverse=False)
-
-            number_safe_candidates = 0
+            n_pop.sort(key=lambda p: p[ self.map_metrics['fitness']], reverse=True)
 
             for i in range(self.candidate_num):
-                if n_pop[i][self.map_metrics['cost']] - self.budget  <= 0:
-                    number_safe_candidates += 1
-                else:
-                    break
-
-            
-            # n_pop.sort(key=lambda p: p[1], reverse=True)
-            
-
-            # for i in range(self.candidate_num):
-            #     n_pop[i][2] = i
+                n_pop[i][2] = i
 
             if self.seeded_env >= 0:
                 if iteration==0:
@@ -157,10 +137,6 @@ class NeuroEvolution:
                 if iteration==0:
                     elite_c = n_pop[:self.candidate_num]
                 else:
-                    #in this case we have more than enough safe agents we reselect our candidates from the safe candidates
-                    if number_safe_candidates >= self.candidate_num:
-                        elite_safe = n_pop[:self.number_safe_candidates]
-                        
                     elite_c = n_pop[:self.candidate_num-1] + [prev_elite]
 
                 rewards_list = np.zeros((10,))
@@ -186,10 +162,10 @@ class NeuroEvolution:
 
                 for i, _ in enumerate(elite_c):
                     elite_c[i][1] = rewards_list[i]
-                    elite_c[i][3] = cost_list[i]  # Update cost
-                    elite_c[i][4] = fitness_list[i]  # Update fitness score
+                    elite_c[i][self.map_metrics['cost']] = cost_list[i]  # Update cost
+                    elite_c[i][self.map_metrics['fitness']] = fitness_list[i]  # Update fitness score
 
-                elite = max(elite_c, key=lambda p: p[1])
+                elite = max(elite_c, key=lambda p: p[self.map_metrics['fitness']])
             if self.method==1:
                 n_pop[elite[2]] = elite
             else:
@@ -205,7 +181,7 @@ class NeuroEvolution:
             )
             test_reward = test_results[0]
             test_cost = test_results[1]
-            test_fitness = test_results[1]
+            test_fitness = test_results[2]
 
             if (iteration+1) % print_step == 0:
                 scalers = {'test_reward': test_reward, 'test_cost': test_cost, 'test_fitness_score': test_fitness}

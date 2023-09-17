@@ -6,7 +6,8 @@ import os
 import pickle
 import time
 import sys
-from SafeNeuroEvolutionTensor import NeuroEvolution
+#from SafeNeuroEvolutionTensor import NeuroEvolution
+from SafeNeuroEvolutionTensorFitness import NeuroEvolution
 
 # from utils.helpers import weights_init
 import safety_gymnasium
@@ -62,7 +63,7 @@ def get_reward(weights, model, render=False):
                 param.data.copy_(weights[i])
             except:
                 param.data.copy_(weights[i].data)
-        env = safety_gymnasium.make(task_name)
+        env = safety_gymnasium.make(task_name, render_mode="rgb_array" )
         ob, _ = env.reset()
         #obs, reward, cost, terminated, truncated, info = env.step(act)
         total_reward = 0
@@ -93,7 +94,7 @@ mother_parameters = list(model.parameters())
 
 ne = NeuroEvolution(
     mother_parameters, partial_func, population_size=50,
-    sigma=0.1, learning_rate=0.001, reward_goal=40, consecutive_goal_stopping=20,
+    sigma=0.1, learning_rate=0.001, reward_goal=25, consecutive_goal_stopping=20,
     threadcount=50, cuda=cuda, render_test=False, task = task_name, select_random_parent = False
 )
 
@@ -110,7 +111,10 @@ end = time.time() - start
 
 pickle.dump(final_weights, open(os.path.abspath(args.weights_path), 'wb'))
 
-reward = partial_func(final_weights, render=True)
+final_results = partial_func(final_weights, render= False)
+
+reward, cost, fitness = final_results
 
 print(f"Reward from final weights: {reward}")
+print(f"Cost from final weights: {cost}")
 print(f"Time to completion: {end}")
