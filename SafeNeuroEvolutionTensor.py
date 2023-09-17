@@ -132,8 +132,8 @@ class NeuroEvolution:
 
             n_pop.sort(key=lambda p: p[reward_idx], reverse=True)
 
-            for i in range(self.candidate_num):
-                n_pop[i][pos_idx] = i
+            # for i in range(self.candidate_num):
+            #     n_pop[i][pos_idx] = i
 
             if self.seeded_env >= 0:
                 if iteration==0:

@@ -11,8 +11,6 @@ from SafeNeuroEvolutionTensor import NeuroEvolution
 
 # from utils.helpers import weights_init
 import safety_gymnasium
-# import gym
-# from gym import logger as gym_logger
 import numpy as np
 import torch
 import torch.nn as nn
@@ -52,6 +50,7 @@ model = Agent(obs_size, [32, 32], output_size = actions_space)
 if cuda:
     print("using Cuda")
     model = model.to('cuda')
+    
 def get_reward(weights, model, render=False):
     '''
     returns reward, cost and weighted score, reward - lamda * cost
@@ -65,7 +64,6 @@ def get_reward(weights, model, render=False):
                 param.data.copy_(weights[i].data)
         env = safety_gymnasium.make(task_name, render_mode="rgb_array" )
         ob, _ = env.reset()
-        #obs, reward, cost, terminated, truncated, info = env.step(act)
         total_reward = 0
         total_cost = 0
         while True:
@@ -77,7 +75,6 @@ def get_reward(weights, model, render=False):
 
             prediction = cloned_model(batch)
             action = prediction.cpu().clone().data[0]
-            # ob, reward, done, _ = env.step(action)
             ob, reward, cost, terminated, truncated, _ = env.step(action)
 
             total_reward += reward
