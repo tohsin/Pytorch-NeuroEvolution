@@ -160,9 +160,17 @@ class NeuroEvolution:
                     #in this case we have more than enough safe agents we reselect our candidates from the safe candidates
                     if number_safe_candidates >= self.candidate_num:
                         elite_safe = n_pop[:self.number_safe_candidates]
-                        
-                    elite_c = n_pop[:self.candidate_num-1] + [prev_elite]
+                        elite_safe.sort(key=lambda p: p[self.map_metrics['reward']], reverse=True)
+                        elite_c = elite_safe[:self.candidate_num-1] + [prev_elite]
+                    # in this case we have some safe agents that are more than 3 but not alot we simply use all for candidate agents
+                    # and not exlude the last agent as we dont have enough
+                    elif number_safe_candidates < self.candidate_num and number_safe_candidates > 3:
+                        elite_c = n_pop[:self.number_safe_candidates] + [prev_elite]
+                    # in this case we dont have any safe agents and we simply selcet the lowest agents
+                    else:
+                         elite_c = n_pop[:self.candidate_num-1] + [prev_elite]
 
+                   
                 rewards_list = np.zeros((10,))
                 cost_list = np.zeros((10,))
                 fitness_list = np.zeros((10,))

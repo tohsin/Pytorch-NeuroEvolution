@@ -92,9 +92,16 @@ class NeuroEvolution:
             "candidate_num" : self.candidate_num,
             "method" : self.method,
             "use_cuda" : torch.cuda.is_available(),
-            "Population_select_random_parent": self.select_random_parent
+            "Population_select_random_parent": self.select_random_parent,
+            "seed_env" : self.seeded_env
          }
     def run(self, iterations, print_step=10):
+        weight_idx = 0
+        reward_idx = 1
+        pos_idx = 2
+        cost_idx = 3
+        fitness_idx = 4
+
         if sys.platform == 'linux': #not debugging on mac but running experiment
             run = wandb.init(project='Safe RL via NeuroEvolution', config = self._get_config(print_step) )
         for iteration in range(iterations):
@@ -115,18 +122,18 @@ class NeuroEvolution:
             
             rewards = self.pool.map( # rewards unwraps into reward, cost and fitness score
                 self.reward_function,
-                [p[0] for p in n_pop]
+                [p[weight_idx] for p in n_pop]
             )
             
             for i, _ in enumerate(n_pop):
-                n_pop[i][1] = rewards[i][0] # first u
-                n_pop[i][3] = rewards[i][1]  # Assign cost
-                n_pop[i][4] = rewards[i][2]  # Assign fitness score
+                n_pop[i][reward_idx] = rewards[i][0] # first u
+                n_pop[i][cost_idx] = rewards[i][1]  # Assign cost
+                n_pop[i][fitness_idx] = rewards[i][2]  # Assign fitness score
 
-            n_pop.sort(key=lambda p: p[1], reverse=True)
+            n_pop.sort(key=lambda p: p[reward_idx], reverse=True)
 
             for i in range(self.candidate_num):
-                n_pop[i][2] = i
+                n_pop[i][pos_idx] = i
 
             if self.seeded_env >= 0:
                 if iteration==0:
@@ -146,7 +153,7 @@ class NeuroEvolution:
                 for _ in range(self.cand_test_times):
                     results = self.pool.map(
                         self.reward_function,
-                        [p[0] for p in elite_c]
+                        [p[weight_idx] for p in elite_c]
                     )
 
                     rewards, costs, fitness_scores = zip(*results)
@@ -161,15 +168,16 @@ class NeuroEvolution:
                 fitness_list /= self.cand_test_times
 
                 for i, _ in enumerate(elite_c):
-                    elite_c[i][1] = rewards_list[i]
-                    elite_c[i][3] = cost_list[i]  # Update cost
-                    elite_c[i][4] = fitness_list[i]  # Update fitness score
+                    elite_c[i][reward_idx] = rewards_list[i]
+                    elite_c[i][cost_idx] = cost_list[i]  # Update cost
+                    elite_c[i][fitness_idx] = fitness_list[i]  # Update fitness score
 
-                elite = max(elite_c, key=lambda p: p[1])
+                elite = max(elite_c, key=lambda p: p[reward_idx])
             if self.method==1:
                 n_pop[elite[2]] = elite
             else:
                 if iteration != 0:
+                    # put elite back into population
                     n_pop[-1] = prev_elite
             pop = n_pop
             prev_elite = elite
@@ -177,14 +185,16 @@ class NeuroEvolution:
 
 
             test_results = self.reward_function(
-                elite[0], render=self.render_test
+                elite[weight_idx], render=self.render_test
             )
             test_reward = test_results[0]
             test_cost = test_results[1]
             test_fitness = test_results[2]
 
             if (iteration+1) % print_step == 0:
-                scalers = {'test_reward': test_reward, 'test_cost': test_cost, 'test_fitness_score': test_fitness}
+                scalers = {'test_reward': test_reward, 
+                           'test_cost': test_cost,
+                            'test_fitness_score': test_fitness}
                 if sys.platform == 'linux':
                     wandb.log(scalers, step = iteration )
 
