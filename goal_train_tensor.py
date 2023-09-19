@@ -6,8 +6,8 @@ import os
 import pickle
 import time
 import sys
-from SafeNeuroEvolutionTensor import NeuroEvolution
-#from SafeNeuroEvolutionTensorFitness import NeuroEvolution
+# from SafeNeuroEvolutionTensor import NeuroEvolution
+from SafeNeuroEvolutionTensorFitness import NeuroEvolution
 
 # from utils.helpers import weights_init
 import safety_gymnasium
@@ -50,7 +50,7 @@ model = Agent(obs_size, [32, 32], output_size = actions_space)
 if cuda:
     print("using Cuda")
     model = model.to('cuda')
-    
+
 def get_reward(weights, model, render=False):
     '''
     returns reward, cost and weighted score, reward - lamda * cost
@@ -83,7 +83,7 @@ def get_reward(weights, model, render=False):
                 break
 
         env.close()
-    fitness =   total_reward - 2 * np.log( max(1e-6, total_cost - 25 ) )
+    fitness =   total_reward - max(0, 2 * np.log( max( 1e-6, total_cost - 25 ) ))
     return total_reward, total_cost, fitness
     
 partial_func = partial(get_reward, model = model)
