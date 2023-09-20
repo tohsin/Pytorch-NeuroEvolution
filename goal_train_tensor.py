@@ -8,7 +8,7 @@ import time
 import sys
 # from SafeNeuroEvolutionTensor import NeuroEvolution
 from SafeNeuroEvolutionTensorFitness import NeuroEvolution
-from SafeNeuroEvolution_MO import NeuroEvolution
+#from SafeNeuroEvolution_MO import NeuroEvolution
 
 # from utils.helpers import weights_init
 import safety_gymnasium
