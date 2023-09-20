@@ -64,7 +64,7 @@ class NeuroEvolution:
         self.seeded_env=seeded_env
         self.task = task
         self.select_random_parent = select_random_parent
-        self.budget = safety_budget
+        self.safety_budget = safety_budget
 
     # def reward_func_wrapper(self):
 
@@ -86,8 +86,11 @@ class NeuroEvolution:
             "method" : self.method,
             "use_cuda" : torch.cuda.is_available(),
             "Population_select_random_parent": self.select_random_parent,
-            "seed_env" : self.seeded_env
+            "seed_env" : self.seeded_env,
+            'file' : "Candidates_safe_agent",
+            "safety_budget" : self.safety_budget
          }
+    
     def run(self, iterations, print_step=10):
         weight_idx = 0
         reward_idx = 1
@@ -158,7 +161,7 @@ class NeuroEvolution:
                     #in this case we have more than enough safe agents we reselect our candidates from the safe candidates
                     if number_safe_candidates >= self.candidate_num:
                         
-                        elite_safe = n_pop[:self.number_safe_candidates]
+                        elite_safe = n_pop[:number_safe_candidates]
                         elite_safe.sort(key=lambda p: p[reward_idx], reverse=True)
 
                         elite_c = elite_safe[:self.candidate_num-1] + [prev_elite]
@@ -166,7 +169,7 @@ class NeuroEvolution:
                     # and not exlude the last agent as we dont have enough
                     elif number_safe_candidates < self.candidate_num and number_safe_candidates > 3:
 
-                        elite_c = n_pop[:self.number_safe_candidates] + [prev_elite]
+                        elite_c = n_pop[:number_safe_candidates] + [prev_elite]
                     # in this case we dont have any safe agents and we simply selcet the lowest agents
                     else:
                          elite_c = n_pop[:self.candidate_num-1] + [prev_elite]

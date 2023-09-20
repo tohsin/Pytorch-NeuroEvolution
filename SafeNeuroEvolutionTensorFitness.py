@@ -38,7 +38,8 @@ class NeuroEvolution:
         method = 2,
         seeded_env=-1,
         task = '',
-        select_random_parent = False
+        select_random_parent = False,
+        safety_budget = 12
     ):
         np.random.seed(int(time.time()))
         self.cand_test_times = cand_test_time
@@ -64,6 +65,7 @@ class NeuroEvolution:
         self.seeded_env=seeded_env
         self.task = task
         self.select_random_parent = select_random_parent
+        self.safety_budget = safety_budget
 
     # def reward_func_wrapper(self):
 
@@ -85,7 +87,10 @@ class NeuroEvolution:
             "method" : self.method,
             "use_cuda" : torch.cuda.is_available(),
             "Population_select_random_parent": self.select_random_parent,
-            "seed_env" : self.seeded_env
+            "seed_env" : self.seeded_env,
+            "file" : "pure_fitness_criteria",
+            "safety_budget": self.safety_budget
+
          }
     def run(self, iterations, print_step=10):
 
@@ -97,6 +102,7 @@ class NeuroEvolution:
 
         if sys.platform == 'linux': #not debugging on mac but running experiment
             run = wandb.init(project='Safe RL via NeuroEvolution', config = self._get_config(print_step) )
+            
         for iteration in range(iterations):
             n_pop = []
             # create a new agent or mutate old agents
