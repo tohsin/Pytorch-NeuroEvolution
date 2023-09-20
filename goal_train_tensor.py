@@ -95,7 +95,7 @@ mother_parameters = list(model.parameters())
 ne = NeuroEvolution(
     mother_parameters, partial_func, population_size=50,
     sigma=0.1, learning_rate=0.001, reward_goal=25, consecutive_goal_stopping=20,
-    threadcount=50, cuda=cuda, render_test=False, task = task_name, select_random_parent = False, safety_budget = 12
+    threadcount=50, cuda=cuda, render_test=False, task = task_name, select_random_parent = False, safety_budget = 25
 )
 
 # ne = NeuroEvolution(
