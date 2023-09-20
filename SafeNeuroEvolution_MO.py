@@ -137,7 +137,7 @@ class NeuroEvolution:
             number_safe_candidates = 0
 
             for i in range(self.candidate_num):
-                if n_pop[i][cost_idx] - self.budget  <= 0:
+                if n_pop[i][cost_idx] - self.safety_budget  <= 0:
                     number_safe_candidates += 1
                 else:
                     break
