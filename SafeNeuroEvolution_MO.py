@@ -38,7 +38,7 @@ class NeuroEvolution:
         seeded_env=-1,
         task = '',
         select_random_parent = False,
-        safety_budget = 25
+        safety_budget = 12
     ):
         np.random.seed(int(time.time()))
         self.cand_test_times = cand_test_time
@@ -85,7 +85,8 @@ class NeuroEvolution:
             "candidate_num" : self.candidate_num,
             "method" : self.method,
             "use_cuda" : torch.cuda.is_available(),
-            "Population_select_random_parent": self.select_random_parent
+            "Population_select_random_parent": self.select_random_parent,
+            "seed_env" : self.seeded_env
          }
     def run(self, iterations, print_step=10):
         weight_idx = 0
@@ -93,6 +94,7 @@ class NeuroEvolution:
         pos_idx = 2
         cost_idx = 3
         fitness_idx = 4
+
         if sys.platform == 'linux': #not debugging on mac but running experiment
             run = wandb.init(project='Safe RL via NeuroEvolution', config = self._get_config(print_step) )
 
@@ -196,7 +198,9 @@ class NeuroEvolution:
                     elite_c[i][cost_idx] = cost_list[i]  # Update cost
                     elite_c[i][fitness_idx] = fitness_list[i]  # Update fitness score
 
-                elite = max(elite_c, key=lambda p: p[1])
+                # swap between fitness and reward
+                elite = max(elite_c, key=lambda p: p[fitness_idx])
+
             if self.method==1:
                 n_pop[elite[2]] = elite
             else:
@@ -212,7 +216,7 @@ class NeuroEvolution:
             )
             test_reward = test_results[0]
             test_cost = test_results[1]
-            test_fitness = test_results[1]
+            test_fitness = test_results[2]
 
             if (iteration+1) % print_step == 0:
                 scalers = {'test_reward': test_reward, 'test_cost': test_cost, 'test_fitness_score': test_fitness}
