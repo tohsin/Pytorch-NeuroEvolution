@@ -54,7 +54,7 @@ if cuda:
 
 
 
-def get_reward(weights, model, safety_budeget = 12, render=False ):
+def get_reward(weights, model, safety_budeget = 25, render=False ):
     '''
     returns reward, cost and weighted score, reward - lamda * cost
     '''

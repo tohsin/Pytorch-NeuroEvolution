@@ -38,7 +38,7 @@ class NeuroEvolution:
         seeded_env=-1,
         task = '',
         select_random_parent = False,
-        safety_budget = 12
+        safety_budget = 25
     ):
         np.random.seed(int(time.time()))
         self.cand_test_times = cand_test_time
